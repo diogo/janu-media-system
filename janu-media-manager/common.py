@@ -1,8 +1,24 @@
 
-class Cover(object):
+
+class MediaFormatModule(object):
+	pass
+
+class MediaSourceModule(object):
+	pass
+
+class TextContentModule(object):
+	pass
+
+class MediaSource(object):
+	pass
+
+class Media(object):
 	pass
 
 class Artist(object):
+	pass
+
+class Author(object):
 	pass
 
 class Album(object):
@@ -11,20 +27,8 @@ class Album(object):
 class Genre(object):
 	pass
 
-class MediaFormatModule(object):
-	pass
-
-class MediaSourceModule(object):
-	pass
-
-class MediaSource(object):
-	pass
-
-class Playlist(object):
+class Cover(object):
 	pass
 
 class User(object):
-	pass
-
-class Media(object):
 	pass
