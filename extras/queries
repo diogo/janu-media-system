@@ -1,6 +1,31 @@
-/media_sources/
-/media_sources/{id}/artists/
-/media_sources/{id}/artists/
-
+## GET ##
+/media_types/
+/media_types/{id}/
+/media_types/{id}/artists/
+/media_types/{id}/artists/{artist_id}/albums/
+/media_types/{id}/artists/{artist_id}/albums/{album_id}/
+/media_types/{id}/artists/{artist_id}/medias/
+/media_types/{id}/artists/{artist_id}/medias/{media_id}/
+/media_types/{id}/medias/
+/media_types/{id}/medias/{media_id}/
+/media_types/{id}/genres/
+/media_types/{id}/genres/{genre_id}/
+/media_types/{id}/genres/{genre_id}/artists/
+/media_types/{id}/genres/{genre_id}/artists/{artist_id}/
+/media_types/{id}/genres/{genre_id}/medias/
+/media_types/{id}/genres/{genre_id}/medias/{media_id}/
 /playlists/
-/playlists/{id}
+/playlists/{id}/
+/playlists/{id}/{media_id}/
+
+## POST ##
+/media_source/
+/playlist/
+
+## PUT ##
+/media_source/{id}/ # ATUALIZA AS MIDIAS REFERENTES A ESSA FONTE
+/media/{id}/
+/media_type/{id}/
+/artist/{id}/
+/album/{id}/
+/playlist/{id}/
