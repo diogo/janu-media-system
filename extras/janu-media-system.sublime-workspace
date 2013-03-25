@@ -1,0 +1,349 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"_con",
+				"_con"
+			],
+			[
+				"_co",
+				"_connect"
+			],
+			[
+				"cl",
+				"close"
+			],
+			[
+				"JMM",
+				"JMMSqlite"
+			],
+			[
+				"sql",
+				"sql"
+			],
+			[
+				"_set",
+				"_set_database"
+			],
+			[
+				"se",
+				"setting"
+			],
+			[
+				"new_",
+				"new_setting"
+			],
+			[
+				"new",
+				"new_settings"
+			],
+			[
+				"SE",
+				"setting"
+			],
+			[
+				"sett",
+				"setting"
+			],
+			[
+				"modu",
+				"modules"
+			],
+			[
+				"lo",
+				"load_settings_file"
+			],
+			[
+				"p",
+				"pop"
+			],
+			[
+				"msg",
+				"msg2"
+			],
+			[
+				"ms",
+				"msg2"
+			],
+			[
+				"inli",
+				"inline-block"
+			],
+			[
+				"inl",
+				"inline-block"
+			],
+			[
+				"sh",
+				"sheet_type"
+			],
+			[
+				"try",
+				"try	Try/Except"
+			],
+			[
+				"VESS",
+				"VESSEL_WARNING"
+			],
+			[
+				"empl",
+				"empl_id"
+			],
+			[
+				"crew",
+				"crewmember_name"
+			],
+			[
+				"cre",
+				"crewmember_name"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/jmm.py",
+			"settings":
+			{
+				"buffer_size": 2210,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "queries",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "consultas"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/dda/Desenvolvimento/importer/database.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/modules/databases/common.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/common.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/settings",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/modules/databases/sqlite.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/modules/databases/__init__.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/__init__.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/modules/__init__.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/settings.py",
+		"/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/modules/databases/mysql.py",
+		"/Users/dda/Desenvolvimento/janus-media-library/phpliteadmin.php",
+		"/Users/dda/Documents/bash_profile",
+		"/Users/dda/Desenvolvimento/kivy-test/kivy-test.py",
+		"/Users/dda/Desenvolvimento/tmp/test_mp3_player.html",
+		"/Users/dda/Desenvolvimento/kivy-examples/android/compass/main.py",
+		"/Users/dda/Desenvolvimento/android/ffmpeg-android/build.sh",
+		"/Users/dda/Desenvolvimento/android/ffmpeg-android/build-h264-aac.sh",
+		"/Users/dda/Documents/bashrc",
+		"/Users/dda/Desenvolvimento/importer/templates/error.html",
+		"/Users/dda/Desenvolvimento/importer/templates/sucess.html",
+		"/Users/dda/Desenvolvimento/importer/templates/warnings.html",
+		"/Users/dda/Desenvolvimento/importer/templates/layout.html",
+		"/Users/dda/Desenvolvimento/importer/templates/index.html",
+		"/Users/dda/Desenvolvimento/importer/messages.py",
+		"/Users/dda/Desenvolvimento/importer/__init__.py",
+		"/Users/dda/Desenvolvimento/importer/settings.py",
+		"/Users/dda/Desenvolvimento/importer/importers.py",
+		"/Users/dda/Desenvolvimento/importer/application.py",
+		"/Users/dda/Desenvolvimento/importer/static/css/structure.css",
+		"/Users/dda/Desenvolvimento/importer/static/css/template.css",
+		"/Users/dda/Desenvolvimento/importer/templates/errors.html",
+		"/Users/dda/Desenvolvimento/importer/controller.py",
+		"/Users/dda/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"jmm",
+			"REALI_QUANT_WARNING_NAME",
+			"loading"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "/Users/dda/Desenvolvimento/janu-media-system/janu-media-manager/jmm.py",
+					"settings":
+					{
+						"buffer_size": 2210,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 1,
+					"file": "queries",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"auto_name": "consultas",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": false,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}
