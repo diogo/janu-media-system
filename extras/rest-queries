@@ -1,0 +1,227 @@
+## GET ##
+/media_types/
+"SELECT DISTINCT media_type.id, media_type.name, cover.url
+ FROM media_type, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = media_type.id
+ AND media_type.cover_id = cover.id"
+
+/media_types/{id}/
+"SELECT DISTINCT artist.id, artist.name, cover.url
+ FROM artist, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.artist_id = artist.id
+ AND artist.cover_id = cover.id"
+
+/media_types/{id}/{artist_id}/
+"SELECT DISTINCT playlist.id, playlist.name, playlist.date, cover.url
+ FROM playlist, playlist_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.artist_id = {artist_id}
+ AND playlist_media.media_id = media.id
+ AND playlist.id = playlist_media.playlist_id
+ AND playlist.collection = 1
+ AND playlist.cover_id = cover.id"
+
+/media_types/{id}/{artist_id}/{collection_id}/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM playlist_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.artist_id = {artist_id}
+ AND playlist_media.media_id = media.id
+ AND playlist_media.playlist_id = {colletion_id}
+ AND media.cover_id = cover.id"
+
+/media_types/{id}/{artist_id}/medias/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.artist_id = {artist_id}
+ AND media.cover_id = cover.id"
+
+/media_types/{id}/genres/
+"SELECT DISTINCT genre.id, genre.name, cover.url
+ FROM genre, genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.media_id = media.id
+ AND genre.id = genre_media.genre_id
+ AND genre.cover_id = cover.id"
+
+/media_types/{id}/genres/{genre_id}/
+"SELECT DISTINCT artist.id, artist.name, cover.url
+ FROM artist, genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.genre_id = {genre_id}
+ AND genre_media.media_id = media.id
+ AND media.artist_id = artist.id
+ AND artist.cover_id = cover.id"
+
+/media_types/{id}/genres/{genre_id}/{artist_id}/
+"SELECT DISTINCT playlist.id, playlist.name, cover.url
+ FROM playlist, playlist_media, genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.genre_id = {genre_id}
+ AND genre_media.media_id = media.id
+ AND media.artist_id = {artist_id}
+ AND playlist_media.media_id = media.id
+ AND playlist_media.playlist_id = playlist.id
+ AND playlist.collection = 1
+ AND playlist.cover_id = cover.id"
+
+/media_types/{id}/genres/{genre_id}/{artist_id}/{collection_id}/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM playlist_media, genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.genre_id = {genre_id}
+ AND genre_media.media_id = media.id
+ AND media.artist_id = {artist_id}
+ AND playlist_media.media_id = media.id
+ AND playlist_media.playlist_id = {collection_id}
+ AND media.cover_id = cover.id"
+
+ /media_types/{id}/genres/{genre_id}/{artist_id}/medias/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM artist, genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.genre_id = {genre_id}
+ AND genre_media.media_id = media.id
+ AND media.artist_id = {artist_id}
+ AND media.cover_id = cover.id"
+
+/media_types/{id}/genres/{genre_id}/medias/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM genre_media, media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND genre_media.genre_id = {genre_id}
+ AND genre_media.media_id = media.id
+ AND media.cover_id = cover.id"
+
+/media_types/{id}/medias/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.cover_id = cover.id"
+
+/media_types/{id}/medias/{media_id}/
+"SELECT DISTINCT media.id, media.name, media.url, cover.url
+ FROM media, media_source, cover, user
+ WHERE (user.email = 'all' OR user.email = {email})
+ AND user.id = media_source.user_id
+ AND media_source.type_id = {id}
+ AND media.source_id = media_source.id
+ AND media.id = {media_id}
+ AND media.cover_id = cover.id"
+
+/playlists/system/
+"SELECT DISTINCT playlist.id, playlist.name, cover.url
+ FROM playlist, cover, user
+ WHERE user.id = 0
+ AND user.id = playlist.user_id
+ AND playlist.collection = 0
+ AND playlist.cover_id = cover.id"
+
+/playlists/system/{id}/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM playlist_media, media, cover, user
+ WHERE user.id = 0
+ AND user.id = playlist.user_id
+ AND playlist_media.playlist_id = {id}
+ AND plyalist_media.media_id = media.id
+ AND media.cover_id = cover.id"
+
+/users/{id}/
+"SELECT DISTINCT user.id, user.name, user.nickname, cover.url
+FROM user, cover
+WHERE user.id = {id}
+AND user.cover_id = cover.id"
+
+/users/{id}/playlists/
+"SELECT DISTINCT playlist.id, playlist.name, cover.url
+FROM playlist
+WHERE playlist.user_id = {id}
+AND playlist.public = 1
+AND playlist.cover_id = cover.id"
+
+/users/{id}/{playlist_id}/
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM playlist_media, media, cover, user
+ AND user.id = {id}
+ AND playlist_media.playlist_id = {playlist_id}
+ AND plyalist_media.media_id = media.id
+ AND media.cover_id = cover.id"
+
+/playlists/  # MÉTODO PRIVADO
+"SELECT DISTINCT playlist.id, playlist.name, cover.url
+ FROM playlist, cover, user
+ WHERE user.email = {email}
+ AND user.id = playlist.user_id
+ AND playlist.collection = 0
+ AND playlist.cover_id = cover.id"
+
+/playlists/{id}/  # MÉTODO PRIVADO
+"SELECT DISTINCT media.id, media.name, cover.url
+ FROM playlist_media, media, cover, user
+ WHERE user.email = {email}
+ AND user.id = playlist.user_id
+ AND playlist_media.playlist_id = {id}
+ AND plyalist_media.media_id = media.id
+ AND media.cover_id = cover.id"
+ 
+
+## POST ##
+/media_types/{id}/media_source/
+/genre/
+/playlist/
+/user/
+
+## PUT ##
+/media_sources/{id}/ # REINDEXA TODAS AS MIDIAS REFERENTES A ESSA FONTE
+/media_types/{id}/
+/medias/{id}/
+/artists/{id}/
+/genres/{id}/
+/playlists/{id}/
+/users/{id}/
+
+## DELETE ##
+/media_sources/{id}/
+/media_types/{id}/
+/medias/{id}/
+/artists/{id}/
+/genres/{id}/
+/playlists/{id}/
+/playlists/{id}/{media_id}/

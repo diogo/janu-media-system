@@ -2,6 +2,8 @@
 
 from os import path
 from messages import *
+from flask.ext import restful
+from models import *
 
 class JMMSettingError(Exception):
 	pass
@@ -67,26 +69,5 @@ class JanuMediaManager(object):
 			self._set_database()
 		self._load_modules()
 
-	def get_media_sources(self):
-		pass
-
-	def add_media_source(self):
-		pass
-
-	def remove_media_source(self):
-		pass
-
-	def get_playlists(self):
-		pass
-
-	def add_playlist(self):
-		pass
-
-	def remove_playlist(self):
-		pass
-
-	def login(self):
-		pass
-
-	def logout(self):
+	def _init_restful(self):
 		pass
