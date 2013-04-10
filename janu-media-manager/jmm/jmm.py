@@ -1,5 +1,5 @@
 # encoding: utf-8
-
+"""
 from os import path
 from messages import *
 from flask.ext import restful
@@ -71,3 +71,4 @@ class JanuMediaManager(object):
 
 	def _init_restful(self):
 		pass
+"""

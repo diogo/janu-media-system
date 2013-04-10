@@ -1,9 +1,0 @@
-databases=sqlite
-media_formats=mp3,youtube
-media_sources=mediafire
-text_contents=radiouol
-
-db_type=sqlite
-db_url=extras/jmm.db
-#db_user=
-#db_password=
