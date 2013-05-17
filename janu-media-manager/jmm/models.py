@@ -1,7 +1,5 @@
-from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 
-DATABASE_URI = 'sqlite:////tmp/test.db'
 db = SQLAlchemy()
 
 class Media(db.Model):
