@@ -2,6 +2,38 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class Cover(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	url = db.Column(db.Text, unique=True, nullable=False)
+
+class MediaType(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	name = db.Column(db.Text, unique=True, nullable=False)
+	content = db.Column(db.Text)
+
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	name = db.Column(db.Text, nullable=False)
+	email = db.Column(db.Text, unique=True, nullable=False)
+	password = db.Column(db.Text, nullable=False)
+	admin = db.Column(db.Boolean, nullable=False, default=False)
+	description = db.Column(db.Text)
+
+class Module(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.Text, nullable=False)
+
+class MediaSource(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	type_id = db.Column(db.Integer, db.ForeignKey('media_type.id'), nullable=False)
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+	name = db.Column(db.Text, nullable=False)
+	exportable = db.Column(db.Boolean, nullable=False, default=False)
+
 class Media(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
@@ -10,21 +42,6 @@ class Media(db.Model):
 	date = db.Column(db.DateTime)
 	content = db.Column(db.Text)
 	name = db.Column(db.Text)
-
-class MediaSource(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	type_id = db.Column(db.Integer, db.ForeignKey('media_type.id'), nullable=False)
-	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
-	module = db.Column(db.Text, nullable=False)
-	name = db.Column(db.Text, nullable=False)
-	exportable = db.Column(db.Boolean, nullable=False, default=False)
-
-class MediaType(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
-	name = db.Column(db.Text, unique=True, nullable=False)
-	content = db.Column(db.Text)
 
 class Artist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -38,10 +55,6 @@ class Genre(db.Model):
 	name = db.Column(db.Text, unique=True)
 	content = db.Column(db.Text)
 
-class Cover(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	url = db.Column(db.Text, unique=True, nullable=False)
-
 class Playlist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -50,15 +63,6 @@ class Playlist(db.Model):
 	public = db.Column(db.Boolean, nullable=False, default=False)
 	collection = db.Column(db.Boolean, nullable=False, default=False)
 	date = db.Column(db.DateTime)
-	content = db.Column(db.Text)
-
-class User(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
-	name = db.Column(db.Text, unique=True, nullable=False)
-	email = db.Column(db.Text, unique=True, nullable=False)
-	password = db.Column(db.Text, nullable=False)
-	admin = db.Column(db.Boolean, nullable=False, default=False)
 	content = db.Column(db.Text)
 
 class FavoriteMedias(db.Model):

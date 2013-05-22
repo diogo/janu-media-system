@@ -1,5 +1,33 @@
 #!/usr/bin/env python
 
+from jmm.models import db, User
+from jmm.service import application
+from sys import argv
+import hashlib
+
+db.init_app(application)
+db.app = application
+
+if len(argv) > 1:
+    if argv[1] == 'create':
+        db.create_all()
+        db.session.add(User(name='system',
+                        email='system',
+                            password=hashlib.md5('system').hexdigest(),
+                            admin=True))
+        db.session.add(User(name='janu',
+                            email='janu',
+                            password=hashlib.md5('janu').hexdigest(),
+                            admin=False))
+        db.session.commit()
+    elif argv[1] == 'users':
+        print db.session.query(User.cover_id, User.name, User.email, User.password, User.admin).all()
+
+
+
+"""
+#!/usr/bin/env python
+
 from flask import Flask, request
 #from flask.ext import restful.Api
 #from jmm.models import db, DATABASE_URI
@@ -45,3 +73,5 @@ def add_user():
 
 if __name__ == '__main__':
     app.run()
+
+"""
