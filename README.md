@@ -1,2 +1,2 @@
-janus-media-system
+janu-media-system
 ==================
