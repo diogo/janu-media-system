@@ -6,17 +6,19 @@ db = SQLAlchemy()
 
 class Cover(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	url = db.Column(db.Text, unique=True, nullable=False)
+	url = db.Column(db.Text, unique=True)
 
 class MediaType(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+	cover = relationship('Cover', uselist=False)
 	name = db.Column(db.Text, unique=True, nullable=False)
-	content = db.Column(db.Text)
+	description = db.Column(db.Text)
+	media_sources = relationship('MediaSource', backref='media_source')
 
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, nullable=False)
 	email = db.Column(db.Text, unique=True, nullable=False)
 	password = db.Column(db.Text, nullable=False)
@@ -31,15 +33,17 @@ class MediaSource(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	type_id = db.Column(db.Integer, db.ForeignKey('media_type.id'), nullable=False)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+	user = relationship('User')
+	module = relationship('Module')
 	name = db.Column(db.Text, nullable=False)
 	exportable = db.Column(db.Boolean, nullable=False, default=False)
 
 class Media(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	url = db.Column(db.Text, nullable=False)
 	date = db.Column(db.DateTime)
 	content = db.Column(db.Text)
@@ -47,20 +51,20 @@ class Media(db.Model):
 
 class Artist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, unique=True)
 	content = db.Column(db.Text)
 
 class Genre(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, unique=True)
 	content = db.Column(db.Text)
 
 class Playlist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, nullable=False)
 	public = db.Column(db.Boolean, nullable=False, default=False)
 	collection = db.Column(db.Boolean, nullable=False, default=False)

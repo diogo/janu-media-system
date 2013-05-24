@@ -1,16 +1,12 @@
-from flask import Flask, request, Response
+from flask import Flask, request
 from models import db, Cover, MediaType, User, Module, MediaSource
-from settings import DATABASE_URI
+from settings import DATABASE_URI, SYSTEM_USER
+from responses import _401, _200
 from functools import wraps
-from flask_tokenauth import TokenAuth, _token_auth
+from token_manager import TokenManager
 import json
 import queries
 import hashlib
-
-try:
-    from flask import _app_ctx_stack as stack
-except ImportError:
-    from flask import _request_ctx_stack as stack
 
 application = Flask(__name__)
 
@@ -18,66 +14,60 @@ db.init_app(application)
 db.app = application
 application.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
-#auth = TokenAuth(application)
-#application.config['TOKENAUTH_EXPIRE'] = 1
-
-tokenauth = _token_auth(1)
-
-def authenticate():
-    return Response('', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+tokenman = TokenManager()
 
 def requires_admin(f):
     @wraps(f)
-    def decorated():
-        args = request.args
-        if args.has_key('token'):
-            print tokenauth._clients
-            if tokenauth._clients.has_key(args['token']):
-                print 'OI'
-                user = tokenauth._clients[args['token']]['user']
+    def decorated(*args, **kwargs):
+        if request.args.has_key('token'):
+            token = request.args['token']
+            if tokenman.clients.has_key(token):
+                user = tokenman.clients[token]['user']
                 if user['admin']:
-                    return f()
-        return authenticate()
+                    return f(*args, **kwargs)
+        return _401
     return decorated
 
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        users = db.session.query(User.email, User.password).all()
-        if check_auth(users):
-            return f(*args, **kwargs)
-        else:
-            return authenticate()
+        if request.args.has_key('token'):
+            token = request.args['token']
+            if tokenman.clients.has_key(token):
+                return f(*args, **kwargs)
+        return _401
     return decorated
 
-### AUTH ###
-@application.route('/login/', methods=['GET'])
-def login():
-    email = request.authorization['username']
-    password = hashlib.md5(request.authorization['password']).hexdigest()
-    user = queries.get_user(db.session, email, password)
-    if user:
-        token = tokenauth.get_token(email, password, request.user_agent, request.remote_addr)
-        tokenauth._clients[token]['user'] = user
-        return json.dumps({token: user})
+### TOKEN ###
+@application.route('/get_token/', methods=['GET'])
+def get_token():
+    if request.authorization:
+        email = request.authorization['username']
+        password = hashlib.md5(request.authorization['password']).hexdigest()
+        user = queries.get_user(db.session, email, password)
+        if user:
+            token = tokenman.get_token(user, request.user_agent, request.remote_addr)
+            return json.dumps(token)
+    return _401
 
-@application.route('/logout/', methods=['GET'])
-def logout():
-    pass
-
-@application.route('/sigin/', methods=['GET'])
-def sigin():
+@application.route('/expire_token/', methods=['GET'])
+def expire_token():
     pass
 ######
 
 ### MEDIA TYPE ###
 @application.route('/mediatypes/', methods=['GET'])
 def mediatypes_get():
-	pass
+    #user = tokenman.clients[request.args['token']]['user']
+    return json.dumps(queries.get_media_types(db.session, system_user=SYSTEM_USER))
 
 @application.route('/mediatype/', methods=['POST'])
+@requires_admin
 def mediatype_post():
-	pass
+    data = request.form
+    db.session.add(MediaType(name=data['name']))
+    db.session.commit()
+    return _200
 
 @application.route('/mediatype/<id>/', methods=['GET'])
 def mediatype_get():
@@ -92,7 +82,7 @@ def mediatype_put():
 @application.route('/users/', methods=['GET'])
 @requires_admin
 def users_get():
-    return str(db.session.query(User.cover_id, User.name, User.email, User.password, User.admin).all())
+    return json.dumps(queries.get_users(db.session))
 
 @application.route('/user/', methods=['POST'])
 def user_post():
@@ -113,8 +103,14 @@ def me_put():
 
 ### MEDIA SOURCE ###
 @application.route('/mediatype/<id>/', methods=['POST'])
-def mediasource_post():
-	pass
+@requires_auth
+def mediasource_post(id):
+    data = request.form
+    user = tokenman.clients[request.args['token']]['user']
+    db.session.add(MediaSource(type_id=id, name=data['name'],
+                               user_id=user['id'], module_id=data['module_id']))
+    db.session.commit()
+    return _200
 
 @application.route('/mediatype/<id>/<mediasource_id>/', methods=['GET'])
 def mediasource_get():
