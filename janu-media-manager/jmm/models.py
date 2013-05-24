@@ -1,4 +1,6 @@
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.login import UserMixin
+from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 

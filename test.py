@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from jmm.models import db, User
+from jmm.models import db, User, Cover
 from jmm.service import application
 from sys import argv
 import hashlib
@@ -11,8 +11,10 @@ db.app = application
 if len(argv) > 1:
     if argv[1] == 'create':
         db.create_all()
+        db.session.commit()
+    elif argv[1] == 'addusers':
         db.session.add(User(name='system',
-                        email='system',
+                            email='system',
                             password=hashlib.md5('system').hexdigest(),
                             admin=True))
         db.session.add(User(name='janu',
@@ -20,8 +22,14 @@ if len(argv) > 1:
                             password=hashlib.md5('janu').hexdigest(),
                             admin=False))
         db.session.commit()
+    elif argv[1] == 'addcover':
+        #db.session.add(Cover(url='http://www.indianfootballonline.com/img/sport/sport_318_test-201.gif'))
+        #db.session.commit()
+        user = db.session.query(User).get(2)
+        user.cover_id = 1
+        db.session.commit()
     elif argv[1] == 'users':
-        print db.session.query(User.cover_id, User.name, User.email, User.password, User.admin).all()
+        print db.session.query(User.name, Cover.url).join(Cover).all()
 
 
 

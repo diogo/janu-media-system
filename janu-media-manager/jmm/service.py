@@ -1,38 +1,43 @@
 from flask import Flask, request, Response
 from models import db, Cover, MediaType, User, Module, MediaSource
-from queries import get_media_types
 from settings import DATABASE_URI
 from functools import wraps
+from flask_tokenauth import TokenAuth, _token_auth
 import json
+import queries
 import hashlib
 
+try:
+    from flask import _app_ctx_stack as stack
+except ImportError:
+    from flask import _request_ctx_stack as stack
+
 application = Flask(__name__)
+
 db.init_app(application)
 db.app = application
 application.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
-def authenticate():
-    """Sends a 401 response that enables basic auth"""
-    return Response(
-    'Could not verify your access level for that URL.\n'
-    'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+#auth = TokenAuth(application)
+#application.config['TOKENAUTH_EXPIRE'] = 1
 
-def check_auth(users):
-    auth = request.authorization
-    for user in users:
-        if user[0] == auth.username and user[1] == hashlib.md5(auth.password).hexdigest():
-            return True
-    return False
+tokenauth = _token_auth(1)
+
+def authenticate():
+    return Response('', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 def requires_admin(f):
     @wraps(f)
-    def decorated(*args, **kwargs):
-        users = db.session.query(User.email, User.password).filter(User.admin == True).all()
-        if check_auth(users):
-            return f(*args, **kwargs)
-        else:
-            return authenticate()
+    def decorated():
+        args = request.args
+        if args.has_key('token'):
+            print tokenauth._clients
+            if tokenauth._clients.has_key(args['token']):
+                print 'OI'
+                user = tokenauth._clients[args['token']]['user']
+                if user['admin']:
+                    return f()
+        return authenticate()
     return decorated
 
 def requires_auth(f):
@@ -44,6 +49,26 @@ def requires_auth(f):
         else:
             return authenticate()
     return decorated
+
+### AUTH ###
+@application.route('/login/', methods=['GET'])
+def login():
+    email = request.authorization['username']
+    password = hashlib.md5(request.authorization['password']).hexdigest()
+    user = queries.get_user(db.session, email, password)
+    if user:
+        token = tokenauth.get_token(email, password, request.user_agent, request.remote_addr)
+        tokenauth._clients[token]['user'] = user
+        return json.dumps({token: user})
+
+@application.route('/logout/', methods=['GET'])
+def logout():
+    pass
+
+@application.route('/sigin/', methods=['GET'])
+def sigin():
+    pass
+######
 
 ### MEDIA TYPE ###
 @application.route('/mediatypes/', methods=['GET'])
@@ -61,7 +86,7 @@ def mediatype_get():
 @application.route('/mediatype/<id>/', methods=['PUT'])
 def mediatype_put():
 	pass
-###
+######
 
 ### USER ###
 @application.route('/users/', methods=['GET'])
@@ -84,7 +109,7 @@ def me_get():
 @application.route('/me/', methods=['PUT'])
 def me_put():
 	pass
-###
+######
 
 ### MEDIA SOURCE ###
 @application.route('/mediatype/<id>/', methods=['POST'])
@@ -98,7 +123,7 @@ def mediasource_get():
 @application.route('/mediatype/<id>/<mediasource_id>/', methods=['PUT'])
 def mediasource_put():
 	pass
-###
+######
 
 
 if __name__ == '__main__':
