@@ -1,12 +1,15 @@
 from flask import Flask, request
 from models import db, Cover, MediaType, User, Module, MediaSource
+from queries import DoQuery
 from settings import DATABASE_URI, SYSTEM_USER
 from responses import _401, _200
 from functools import wraps
 from token_manager import TokenManager
 import json
-import queries
 import hashlib
+
+tokenman = TokenManager()
+doquery = DoQuery(db.session)
 
 application = Flask(__name__)
 
@@ -14,16 +17,13 @@ db.init_app(application)
 db.app = application
 application.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 
-tokenman = TokenManager()
-
 def requires_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if request.args.has_key('token'):
-            token = request.args['token']
-            if tokenman.clients.has_key(token):
-                user = tokenman.clients[token]['user']
-                if user['admin']:
+            client = tokenman.get_client(request.args['token'])
+            if client:
+                if client['user']['admin']:
                     return f(*args, **kwargs)
         return _401
     return decorated
@@ -32,8 +32,8 @@ def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if request.args.has_key('token'):
-            token = request.args['token']
-            if tokenman.clients.has_key(token):
+            client = tokenman.get_client(request.args['token'])
+            if client:
                 return f(*args, **kwargs)
         return _401
     return decorated
@@ -44,7 +44,7 @@ def get_token():
     if request.authorization:
         email = request.authorization['username']
         password = hashlib.md5(request.authorization['password']).hexdigest()
-        user = queries.get_user(db.session, email, password)
+        user = doquery.get_user(email, password)
         if user:
             token = tokenman.get_token(user, request.user_agent, request.remote_addr)
             return json.dumps(token)
@@ -58,8 +58,11 @@ def expire_token():
 ### MEDIA TYPE ###
 @application.route('/mediatypes/', methods=['GET'])
 def mediatypes_get():
-    #user = tokenman.clients[request.args['token']]['user']
-    return json.dumps(queries.get_media_types(db.session, system_user=SYSTEM_USER))
+    return json.dumps(doquery.get_media_types(system_user=SYSTEM_USER))
+
+@application.route('/mediatype/<id>/', methods=['GET'])
+def mediatype_get():
+	pass
 
 @application.route('/mediatype/', methods=['POST'])
 @requires_admin
@@ -69,28 +72,50 @@ def mediatype_post():
     db.session.commit()
     return _200
 
-@application.route('/mediatype/<id>/', methods=['GET'])
-def mediatype_get():
-	pass
-
 @application.route('/mediatype/<id>/', methods=['PUT'])
 def mediatype_put():
 	pass
+######
+
+### MEDIA SOURCE ###
+@application.route('/mediasources/', methods=['GET'])
+def mediasources_get():
+    return json.dumps(doquery.get_media_sources(system_user=SYSTEM_USER))
+
+@application.route('/mediasource/<id>/', methods=['GET'])
+@requires_admin
+def mediasource_get():
+    pass
+
+@application.route('/mediasource/', methods=['POST'])
+@requires_admin
+def mediasource_post(id):
+    data = request.form
+    user = tokenman.clients[request.args['token']]['user']
+    db.session.add(MediaSource(type_id=data['type_id'], name=data['name'],
+                               user_id=user['id'], module_id=data['module_id']))
+    db.session.commit()
+    return _200
+
+@application.route('/mediasource/<id>/', methods=['PUT'])
+def mediasource_put():
+    pass
 ######
 
 ### USER ###
 @application.route('/users/', methods=['GET'])
 @requires_admin
 def users_get():
-    return json.dumps(queries.get_users(db.session))
+    return json.dumps(doquery.get_users())
+
+@application.route('/user/<id>/', methods=['GET'])
+@requires_admin
+def user_get():
+	pass
 
 @application.route('/user/', methods=['POST'])
 def user_post():
-	pass
-
-@application.route('/user/<id>/', methods=['GET'])
-def user_get():
-	pass
+    pass
 
 @application.route('/me/', methods=['GET'])
 def me_get():
@@ -98,26 +123,6 @@ def me_get():
 
 @application.route('/me/', methods=['PUT'])
 def me_put():
-	pass
-######
-
-### MEDIA SOURCE ###
-@application.route('/mediatype/<id>/', methods=['POST'])
-@requires_auth
-def mediasource_post(id):
-    data = request.form
-    user = tokenman.clients[request.args['token']]['user']
-    db.session.add(MediaSource(type_id=id, name=data['name'],
-                               user_id=user['id'], module_id=data['module_id']))
-    db.session.commit()
-    return _200
-
-@application.route('/mediatype/<id>/<mediasource_id>/', methods=['GET'])
-def mediasource_get():
-	pass
-
-@application.route('/mediatype/<id>/<mediasource_id>/', methods=['PUT'])
-def mediasource_put():
 	pass
 ######
 

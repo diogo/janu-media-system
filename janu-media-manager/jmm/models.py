@@ -35,8 +35,10 @@ class MediaSource(db.Model):
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
-	user = relationship('User')
-	module = relationship('Module')
+	type = relationship('MediaType', uselist=False)
+	cover = relationship('Cover', uselist=False)
+	user = relationship('User', uselist=False)
+	module = relationship('Module', uselist=False)
 	name = db.Column(db.Text, nullable=False)
 	exportable = db.Column(db.Boolean, nullable=False, default=False)
 
