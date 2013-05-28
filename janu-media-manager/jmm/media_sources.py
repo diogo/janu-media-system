@@ -1,49 +1,66 @@
 from httplib import HTTPSConnection
+from threading import Thread
+from settings import FORMATS
 import json
 import hashlib
 
 class MediaFire(object):
-    def __init__(self, user_email, password, app_id, api_key):
-        signature = hashlib.sha1(user_email + password + app_id + api_key).hexdigest()
-        self._token = self._get_api_data('/api/user/get_session_token.php?email=%s&password=%s&application_id=%s&signature=%s&response_format=json'
-                                         % (user_email, password, app_id, signature)
-                                         )['response']['session_token']
+    def __init__(self, email, password, app_id, api_key):
+        self._signature = hashlib.sha1(email + password + app_id + api_key).hexdigest()
+        self._email = email
+        self._password = password
+        self._app_id = app_id
+        self._token = None
+        self._get_token()
 
-    def _get_api_data(self, uri):
+    def _get_api_data(self, type_, method, **kwargs):
         conn = HTTPSConnection('www.mediafire.com')
+        uri = '/api/%s/%s.php?response_format=json' % (type_, method)
+        if self._token:
+            uri = uri + '&session_token=%s' % self._token
+        if len(kwargs):
+            for key, value in kwargs.items():
+                uri = uri + '&%s=%s' % (key, value)
         conn.request('GET', uri)
         response = conn.getresponse()
         if response.status == 200:
             return json.loads(response.read())
         else:
-            return False
+            return None
 
-    def renew_token(self):
-            self._token = self._get_api_data('/api/user/renew_session_token.php?session_token=%s&response_format=json'
-                               % self._token)['response']['session_token']
+    def _get_token(self):
+        self._token = self._get_api_data('user', 'get_session_token',
+                                         email=self._email, password=self._password,
+                                         application_id=self._app_id,
+                                         signature=self._signature)['response']['session_token']
 
-    def get_root_content(self):
-        self._get_folder_content()
-
-    def _get_folder_content(self, folderkey=None):
-        print folderkey
-        if folderkey:
-            print 'oi'
-            files = self._get_api_data('/api/folder/get_content.php?session_token=%s&folderkey=%s&content_type=files&response_format=json'
-                                         % (self._token, folderkey))['response']['folder_content']['files']
-            folders = self._get_api_data('/api/folder/get_content.php?session_token=%s&folderkey=%s&response_format=json'
-                                         % (self._token, folderkey))['response']['folder_content']['folders']
+    def _renew_token(self):
+        new_token = self._get_api_data('user', 'renew_session_token')['response']['session_token']
+        if new_token:
+            self._token = new_token
         else:
-            print 'porra'
-            files = self._get_api_data('/api/folder/get_content.php?session_token=%s&content_type=files&response_format=json'
-                                         % self._token)['response']['folder_content']['files']
-            folders = self._get_api_data('/api/folder/get_content.php?session_token=%s&response_format=json'
-                                     % self._token)['response']['folder_content']['folders']
-        print folders
-        for _file in files:
-            print _file['filename']
+            self._get_token()
+
+    def _populate_db_recursive(self, folder_key=None):
+        if folder_key:
+            files = self._get_api_data('folder', 'get_content', folder_key=folder_key,
+                                       content_type='files')['response']['folder_content']['files']
+            folders = self._get_api_data('folder', 'get_content',
+                                         folder_key=folder_key)['response']['folder_content']['folders']
+        else:
+            files = self._get_api_data('folder', 'get_content',
+                                       content_type='files')['response']['folder_content']['files']
+            folders = self._get_api_data('folder', 'get_content')['response']['folder_content']['folders']
+
+        for file_ in files:
+            if FORMATS.has_key(file_['mimetype']):
+                url = self._get_api_data('file', 'get_links', link_type='direct_download',
+                                          quick_key=file_['quickkey'])['response']['links'][0]['direct_download']
+                #tags = FORMATS[file_['mimetype']](direct_link)
+                print url
         for folder in folders:
-            print folder['name']
-            print folder['folderkey']
-            self._get_folder_content(folder['folderkey'])
+            self._populate_db_recursive(folder['folderkey'])
+
+    def populate_db(self):
+        self._populate_db_recursive()
 

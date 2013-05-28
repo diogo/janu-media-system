@@ -42,6 +42,10 @@ class MediaSource(db.Model):
 	name = db.Column(db.Text, nullable=False)
 	exportable = db.Column(db.Boolean, nullable=False, default=False)
 
+class MediaSourceMedia(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	media_source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
+
 class Media(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
