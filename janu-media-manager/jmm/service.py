@@ -1,14 +1,17 @@
 from flask import Flask, request
-from models import db, Cover, MediaType, User, Module, MediaSource
+from models import db, Cover, MediaType, User, Module, MediaSource, Mediafire
 from queries import DoQuery
 from settings import DATABASE_URI, SYSTEM_USER
 from responses import _401, _200
 from functools import wraps
 from token_manager import TokenManager
+from media_manager import MediaManager
 import json
 import hashlib
+import media_sources
 
 tokenman = TokenManager()
+mediaman = MediaManager()
 doquery = DoQuery(db.session)
 
 application = Flask(__name__)
@@ -84,17 +87,18 @@ def mediasources_get():
 
 @application.route('/mediasource/<id>/', methods=['GET'])
 @requires_admin
-def mediasource_get():
+def mediasource_get(id):
     pass
 
 @application.route('/mediasource/', methods=['POST'])
 @requires_admin
-def mediasource_post(id):
+def mediasource_post():
     data = request.form
-    user = tokenman.clients[request.args['token']]['user']
-    db.session.add(MediaSource(type_id=data['type_id'], name=data['name'],
-                               user_id=user['id'], module_id=data['module_id']))
+    user = tokenman.get_client(request.args['token'])['user']
+    mediasource = MediaSource(name=data['name'], user_id=user['id'], module_id=data['module_id'])
+    db.session.add(mediasource)
     db.session.commit()
+    eval('modules.%s.populate_db(data)' % mediasource.module.name)
     return _200
 
 @application.route('/mediasource/<id>/', methods=['PUT'])

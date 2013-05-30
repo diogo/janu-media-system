@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from jmm.models import db, User, Cover, Module
+from jmm.models import db, User, Cover, Module, Mediafire, MediaType, Format
 from jmm.service import application
 from sys import argv
 import hashlib
@@ -11,18 +12,18 @@ db.app = application
 if len(argv) > 1:
     if argv[1] == 'create':
         db.create_all()
-        db.session.add(Module(name='mediafire'))
         db.session.add(Cover())
-        db.session.add(Cover(url='http://www.indianfootballonline.com/img/sport/sport_318_test-201.gif'))
+        db.session.add(Cover(url='http://cdn1.iconfinder.com/data/icons/VISTA/database/png/400/administrator.png'))
+        db.session.add(Module(name='mediafire'))
+        db.session.add(Mediafire())
         db.session.add(User(name='system',
                             email='system',
                             password=hashlib.md5('system').hexdigest(),
                             admin=True,
-                            cover_id=1))
+                            cover_id=2))
+        db.session.add(MediaType(name=u'Músicas'))
+        db.session.add(Format(name='audio/mpeg', type_id=1))
         db.session.commit()
-    elif argv[1] == 'users':
-        print db.session.query(User.name, Cover.url).join(Cover).all()
-
 
 
 """

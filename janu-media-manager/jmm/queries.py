@@ -14,23 +14,6 @@ class DoQuery(object):
             return new_list
         return None
 
-    def get_media_types(self, user_email=None, system_user=None):
-        media_types = self._db_session.query(MediaType.id, MediaType.name, Cover.url.label('cover_url'))\
-                                      .join(MediaType.cover).join(MediaType.media_sources)\
-                                      .join(MediaSource.user)\
-                                      .filter(or_(User.email == user_email,
-                                              User.email == system_user)).distinct().all()
-        return self._as_dict(media_types)
-
-    def get_media_sources(self, user_email=None, system_user=None):
-        media_sources = self._db_session.query(MediaSource.id, MediaSource.name, Cover.url.label('cover_url'),
-                                               Module.name.label('module_name'), MediaType.name.label('type_name'))\
-                                      .join(MediaSource.cover).join(MediaSource.module)\
-                                      .join(MediaSource.type).join(MediaSource.user)\
-                                      .filter(or_(User.email == user_email,
-                                              User.email == system_user)).distinct().all()
-        return self._as_dict(media_sources)
-
     def get_user(self, user_email, user_password=None):
         query = self._db_session.query(User.id, User.name, User.email, User.admin,
                                        User.description, Cover.url.label('cover_url')).join(Cover)
@@ -47,3 +30,14 @@ class DoQuery(object):
         users = self._db_session.query(User.id, User.name, User.email, User.admin,
                                        Cover.url.label('cover_url')).join(Cover).all()
         return self._as_dict(users)
+
+    def get_media_sources(self, user_email=None, system_user=None):
+        media_sources = self._db_session.query(MediaSource.id, MediaSource.name,
+                                               Cover.url.label('cover_url'),
+                                               Module.name.label('module_name'))
+        media_sources = media_sources.join(MediaSource.cover)\
+                                     .join(MediaSource.module)\
+                                     .join(MediaSource.user)
+        media_sources = media_sources.filter(or_(User.email == user_email,
+                                                 User.email == system_user)).distinct().all()
+        return self._as_dict(media_sources)

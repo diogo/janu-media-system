@@ -1,6 +1,10 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import UserMixin
 from sqlalchemy.orm import relationship
+from settings import FORMATS
+from httplib import HTTPSConnection
+import json
+import hashlib
 
 db = SQLAlchemy()
 
@@ -8,74 +12,108 @@ class Cover(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	url = db.Column(db.Text, unique=True)
 
-class MediaType(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
-	cover = relationship('Cover', uselist=False)
-	name = db.Column(db.Text, unique=True, nullable=False)
-	description = db.Column(db.Text)
-	media_sources = relationship('MediaSource', backref='media_source')
-
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, nullable=False)
 	email = db.Column(db.Text, unique=True, nullable=False)
 	password = db.Column(db.Text, nullable=False)
 	admin = db.Column(db.Boolean, nullable=False, default=False)
 	description = db.Column(db.Text)
 
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
+
 class Module(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.Text, nullable=False)
 
+class Mediafire(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.Text)
+    password = db.Column(db.Text)
+    appid = db.Column(db.Text)
+    apikey = db.Column(db.Text)
+
+    mediafire_id = db.Column(db.Integer, db.ForeignKey('mediafire.id'), default=1)
+
+    mediafire = relationship('Mediafire', uselist=False, backref='media_source')
+
 class MediaSource(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	type_id = db.Column(db.Integer, db.ForeignKey('media_type.id'), nullable=False)
+	name = db.Column(db.Text)
+
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
-	type = relationship('MediaType', uselist=False)
+
 	cover = relationship('Cover', uselist=False)
 	user = relationship('User', uselist=False)
 	module = relationship('Module', uselist=False)
-	name = db.Column(db.Text, nullable=False)
-	exportable = db.Column(db.Boolean, nullable=False, default=False)
 
-class MediaSourceMedia(db.Model):
+class MediaType(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	media_source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
+	name = db.Column(db.Text, nullable=False)
+
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
+
+class Format(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.Text, nullable=False)
+
+	type_id = db.Column(db.Integer, db.ForeignKey('media_type.id'), nullable=False)
+
+	media_type = relationship('MediaType', uselist=False)
 
 class Media(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	url = db.Column(db.Text, nullable=False)
 	date = db.Column(db.DateTime)
 	content = db.Column(db.Text)
 	name = db.Column(db.Text)
+	play_counter = db.Column(db.Integer, default=0)
+
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
+	format_id = db.Column(db.Integer, db.ForeignKey('format.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
+	source = relationship('MediaSource', uselist=False)
+	format = relationship('Format', uselist=False)
 
 class Artist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, unique=True)
 	content = db.Column(db.Text)
 
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
+	
 class Genre(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, unique=True)
 	content = db.Column(db.Text)
+
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
 
 class Playlist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	name = db.Column(db.Text, nullable=False)
 	public = db.Column(db.Boolean, nullable=False, default=False)
 	collection = db.Column(db.Boolean, nullable=False, default=False)
 	date = db.Column(db.DateTime)
 	content = db.Column(db.Text)
+
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
+
+	cover = relationship('Cover', uselist=False)
+	user = relationship('User', uselist=False)
 
 class FavoriteMedias(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -85,6 +123,11 @@ class FavoriteMedias(db.Model):
 class FavoritePlaylists(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+	playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
+
+class MediaPlaylists(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	media_id = db.Column(db.Integer, db.ForeignKey('media.id'), nullable=False)
 	playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
 
 class MediaGenres(db.Model):

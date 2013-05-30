@@ -1,17 +1,21 @@
+from models import db, Format, 
 from httplib import HTTPSConnection
-from threading import Thread
 from settings import FORMATS
 import json
 import hashlib
 
-class MediaFire(object):
-    def __init__(self, email, password, app_id, api_key):
-        self._signature = hashlib.sha1(email + password + app_id + api_key).hexdigest()
-        self._email = email
-        self._password = password
-        self._app_id = app_id
+def get_module(mediasource, data):
+    module_name = mediasource.module.name
+    data['media_source_id'] = mediasource.id
+    return eval('%s(data)' % module_name)
+
+class mediafire(object):
+    def __init__(self, data):
         self._token = None
-        self._get_token()
+        self.user = user
+        self.password = password
+        self.appid = appid
+        self.apikey = apikey
 
     def _get_api_data(self, type_, method, **kwargs):
         conn = HTTPSConnection('www.mediafire.com')
@@ -29,18 +33,13 @@ class MediaFire(object):
             return None
 
     def _get_token(self):
+        signature = hashlib.sha1(self.user + self.password +
+                                 self.appid + self.apikey).hexdigest()
         self._token = self._get_api_data('user', 'get_session_token',
-                                         email=self._email, password=self._password,
-                                         application_id=self._app_id,
-                                         signature=self._signature)['response']['session_token']
-
-    def _renew_token(self):
-        new_token = self._get_api_data('user', 'renew_session_token')['response']['session_token']
-        if new_token:
-            self._token = new_token
-        else:
-            self._get_token()
-
+                                         email=self.user, password=self.password,
+                                         application_id=self.appid,
+                                         signature=signature)['response']['session_token']
+            
     def _populate_db_recursive(self, folder_key=None):
         if folder_key:
             files = self._get_api_data('folder', 'get_content', folder_key=folder_key,
@@ -53,14 +52,16 @@ class MediaFire(object):
             folders = self._get_api_data('folder', 'get_content')['response']['folder_content']['folders']
 
         for file_ in files:
-            if FORMATS.has_key(file_['mimetype']):
+            format = db.session.query(Format.id).filter(Format.name == file_['mimetype']).first()
+            if format:
                 url = self._get_api_data('file', 'get_links', link_type='direct_download',
                                           quick_key=file_['quickkey'])['response']['links'][0]['direct_download']
-                #tags = FORMATS[file_['mimetype']](direct_link)
+                
                 print url
         for folder in folders:
             self._populate_db_recursive(folder['folderkey'])
 
     def populate_db(self):
+        self._renew_token()
         self._populate_db_recursive()
 
