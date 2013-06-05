@@ -1,7 +1,5 @@
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import UserMixin
 from sqlalchemy.orm import relationship
-from settings import FORMATS
 from httplib import HTTPSConnection
 import json
 import hashlib
@@ -27,17 +25,6 @@ class User(db.Model):
 class Module(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.Text, nullable=False)
-
-class Mediafire(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.Text)
-    password = db.Column(db.Text)
-    appid = db.Column(db.Text)
-    apikey = db.Column(db.Text)
-
-    mediafire_id = db.Column(db.Integer, db.ForeignKey('mediafire.id'), default=1)
-
-    mediafire = relationship('Mediafire', uselist=False, backref='media_source')
 
 class MediaSource(db.Model):
 	id = db.Column(db.Integer, primary_key=True)

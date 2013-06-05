@@ -1,17 +1,15 @@
 from flask import Flask, request
-from models import db, Cover, MediaType, User, Module, MediaSource, Mediafire
+from models import db, Cover, MediaType, User, Module, MediaSource
 from queries import DoQuery
 from settings import DATABASE_URI, SYSTEM_USER
 from responses import _401, _200
 from functools import wraps
 from token_manager import TokenManager
-from media_manager import MediaManager
 import json
 import hashlib
-import media_sources
+import mediasources.mediafire
 
 tokenman = TokenManager()
-mediaman = MediaManager()
 doquery = DoQuery(db.session)
 
 application = Flask(__name__)
@@ -59,7 +57,7 @@ def expire_token():
 ######
 
 ### MEDIA TYPE ###
-@application.route('/mediatypes/', methods=['GET'])
+@application.route('/mediatype/', methods=['GET'])
 def mediatypes_get():
     return json.dumps(doquery.get_media_types(system_user=SYSTEM_USER))
 
@@ -81,7 +79,7 @@ def mediatype_put():
 ######
 
 ### MEDIA SOURCE ###
-@application.route('/mediasources/', methods=['GET'])
+@application.route('/mediasource/', methods=['GET'])
 def mediasources_get():
     return json.dumps(doquery.get_media_sources(system_user=SYSTEM_USER))
 
@@ -98,8 +96,19 @@ def mediasource_post():
     mediasource = MediaSource(name=data['name'], user_id=user['id'], module_id=data['module_id'])
     db.session.add(mediasource)
     db.session.commit()
-    eval('modules.%s.populate_db(data)' % mediasource.module.name)
-    return _200
+    data = {key: value for key, value in data.items()}
+    data['media_source_id'] = mediasource.id
+    module_class = mediasources.__dict__[mediasource.module.name].get_module_class()
+    module = module_class(data)
+    db.session.add(module)
+    db.session.commit()
+    medias_url = module.get_medias_url()
+    if medias_url:
+        print medias_url
+        return _200
+    else:
+        return _401
+
 
 @application.route('/mediasource/<id>/', methods=['PUT'])
 def mediasource_put():
@@ -107,7 +116,7 @@ def mediasource_put():
 ######
 
 ### USER ###
-@application.route('/users/', methods=['GET'])
+@application.route('/user/', methods=['GET'])
 @requires_admin
 def users_get():
     return json.dumps(doquery.get_users())
