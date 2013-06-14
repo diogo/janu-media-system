@@ -46,7 +46,7 @@ class MediaType(db.Model):
 
 	cover = relationship('Cover', uselist=False)
 
-class Format(db.Model):
+class ContentType(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.Text, nullable=False)
 
@@ -64,11 +64,11 @@ class Media(db.Model):
 
 	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
-	format_id = db.Column(db.Integer, db.ForeignKey('format.id'), default=1)
+	content_type_id = db.Column(db.Integer, db.ForeignKey('content_type.id'), default=1)
 
 	cover = relationship('Cover', uselist=False)
 	source = relationship('MediaSource', uselist=False)
-	format = relationship('Format', uselist=False)
+	content_type = relationship('ContentType', uselist=False)
 
 class Artist(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
