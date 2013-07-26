@@ -102,9 +102,8 @@ def mediasource_post():
     module = module_class(data)
     db.session.add(module)
     db.session.commit()
-    medias_url = module.get_medias_url()
+    medias_url = module.add_mediasource_items()
     if medias_url:
-        print medias_url
         return _200
     else:
         return _401

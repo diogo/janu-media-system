@@ -4,6 +4,7 @@ from threading import Thread
 from sqlalchemy.orm import relationship
 import json
 import hashlib
+import urllib2
 
 def get_module_class():
     return mediafire
@@ -74,6 +75,9 @@ class mediafire(db.Model):
             format = db.session.query(ContentType.id).filter(ContentType.name == file_['mimetype']).first()
             if format:
                 self._medias_quickkey.append(file_['quickkey'])
+                if file_['mimetype'] == 'audio/mpeg':
+                    mp3 = urllib2.urlopen(self._get_media_dlink(file_['quickkey']))
+                    print mp3.readline()
         for folder in folders:
             thread = Thread(target=self._get_medias_url, args=(folder['folderkey'],))
             self._threads.append(thread)
