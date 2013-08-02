@@ -25,9 +25,9 @@ if len(argv) > 1:
         db.session.add(MediaType(name=u'Vídeos'))
         db.session.add(MediaType(name=u'Fotos'))
         db.session.add(ContentType(name='audio/mpeg', type_id=1))
-        db.session.add(ContentType(name='image/jpeg', type_id=3))
-        db.session.add(ContentType(name='image/png', type_id=3))
-        db.session.add(ContentType(name='video/mp4', type_id=2))
+        #db.session.add(ContentType(name='image/jpeg', type_id=3))
+        #db.session.add(ContentType(name='image/png', type_id=3))
+        #db.session.add(ContentType(name='video/mp4', type_id=2))
         db.session.commit()
 
 
