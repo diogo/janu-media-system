@@ -64,7 +64,7 @@ class Media(db.Model):
 
 	cover_id = db.Column(db.Integer, db.ForeignKey('cover.id'), default=1)
 	source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
-	content_type_id = db.Column(db.Integer, db.ForeignKey('content_type.id'), default=1)
+	content_type_id = db.Column(db.Integer, db.ForeignKey('content_type.id'), nullable=False)
 
 	cover = relationship('Cover', uselist=False)
 	source = relationship('MediaSource', uselist=False)
@@ -109,6 +109,7 @@ class FavoriteMedias(db.Model):
 
 class FavoritePlaylists(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	collection_position = db.Column(db.Integer)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 	playlist_id = db.Column(db.Integer, db.ForeignKey('playlist.id'), nullable=False)
 
