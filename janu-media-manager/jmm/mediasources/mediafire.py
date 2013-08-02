@@ -1,4 +1,4 @@
-from models import db, ContentType, Media
+from models import db
 from httplib import HTTPSConnection
 from threading import Thread
 from sqlalchemy.orm import relationship
@@ -31,7 +31,7 @@ class mediafire(db.Model):
             super(mediafire, self).__init__()
         self._token = None
         self._threads = []
-        self._medias_quickkey = []
+        self._medias = []
 
     def _get_api_data(self, type_, method, **kwargs):
         conn = HTTPSConnection('www.mediafire.com')
@@ -56,11 +56,7 @@ class mediafire(db.Model):
                                          application_id=self.appid,
                                          signature=signature)['response']['session_token']
 
-    def _get_media_dlink(self, quick_key):
-        return self._get_api_data('file', 'get_links', link_type='direct_download',
-                                  quick_key=quick_key)['response']['links'][0]['direct_download']
-
-    def _get_medias_url(self, folder_key=None):
+    def _get_medias(self, folder_key=None):
         if folder_key:
             files = self._get_api_data('folder', 'get_content', folder_key=folder_key,
                                        content_type='files')['response']['folder_content']['files']
@@ -72,20 +68,20 @@ class mediafire(db.Model):
             folders = self._get_api_data('folder', 'get_content')['response']['folder_content']['folders']
 
         for file_ in files:
-            format = db.session.query(ContentType.id).filter(ContentType.name == file_['mimetype']).first()
-            if format:
-                self._medias_quickkey.append(file_['quickkey'])
-                if file_['mimetype'] == 'audio/mpeg':
-                    mp3 = urllib2.urlopen(self._get_media_dlink(file_['quickkey']))
-                    print mp3.readline()
+            self._medias.append({'content_type': file_['mimetype'], 'url': file_['quickkey']})
+                
         for folder in folders:
-            thread = Thread(target=self._get_medias_url, args=(folder['folderkey'],))
+            thread = Thread(target=self._get_medias, args=(folder['folderkey'],))
             self._threads.append(thread)
             thread.start()
 
-    def add_mediasource_items(self):
+    def get_media_url(self, quickkey):
+        return self._get_api_data('file', 'get_links', link_type='direct_download',
+                                  quick_key=quickkey)['response']['links'][0]['direct_download']
+
+    def get_all_medias(self):
         self._get_token()
-        self._get_medias_url()
+        self._get_medias()
         for thread in self._threads:
             thread.join()
-        return self._medias_quickkey
+        return self._medias
