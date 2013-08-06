@@ -9,16 +9,13 @@ import urllib2
 def get_module_class():
     return mediafire
 
-#def get_module(media_source_id):
-#    db.session.query(mediafire).filter
-
 class mediafire(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Text)
     password = db.Column(db.Text)
     appid = db.Column(db.Text)
     apikey = db.Column(db.Text)
-    media_source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False)
+    media_source_id = db.Column(db.Integer, db.ForeignKey('media_source.id'), nullable=False, unique=True)
     media_source = relationship('MediaSource', uselist=False, backref='media_source')
 
     def __init__(self, data=None, user=None, password=None,
