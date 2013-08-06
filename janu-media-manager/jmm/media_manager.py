@@ -17,10 +17,18 @@ def _get_models_by_user(query, user_id):
 	return query.filter(or_(User.id == user_id,
                             User.id == SYSTEM_USER_ID)).distinct().all()
 
-def _get_query_by_artists(query):
-	return query.filter(MediaArtists.artist_id == Artist.id,
+def _get_query_by_artists(query, artist_id=None):
+	query = query.filter(MediaArtists.artist_id == Artist.id,
 						MediaArtists.media_id == Media.id,
 						Media.source_id == MediaSource.id)
+	if artist_id:
+		return query.filter(Artist.id == artist_id)
+
+def _get_media_source_module(mediasource_id):
+	mediasource = MediaSource.get(mediasource_id)
+	module_class = mediasources.__dict__[mediasource.module.name].get_module_class()
+	return db.session.query(module_class).filter(module_class.media_source_id == mediasource_id).first()[0]
+
 
 def get_artists(user_id=None):
  	artists = db.session.query(Artist.id, Artist.name, Cover.url.label('cover_url'))
@@ -35,10 +43,25 @@ def get_collections_by_artist(artist_id, user_id=None):
 	collections = collections.filter(Playlist.collection == True,
 									 MediaPlaylists.playlist_id == Playlist.id,
 									 MediaPlaylists.media_id == Media.id)
-	collections = _get_query_by_artists(collections)
-	collections = collections.filter(Artist.id == artist_id)
+	collections = _get_query_by_artists(collections, artist_id)
 	collections = _get_models_by_user(collections, user_id)
 	return _as_dict(collections)
+
+def get_medias_by_artist(artist_id, user_id=None):
+	medias = db.session.query(Media.id, Media.name, Media.url, Media.date, Media.source_id,
+							  Artist.name.label('artist_name'), Artist.id.label('artist_id'))
+	medias = _get_query_by_artists(medias, artist_id)
+	medias = _get_models_by_user(medias, user_id)
+	medias = _as_dict(medias)
+	media_sources = {}
+	for media in medias:
+		media['date'] = media['date'].strftime('%Y')
+		source_id = media['source_id']
+		if not media_sources.has_key(source_id):
+			media_sources[source_id] = _get_media_source_module(source_id)
+		else:
+			media['url'] = media_sources[source_id].get_media_url(media['url'])
+	return medias
 
 def get_user(user_id, user_password=None):
     query = db.session.query(User.id, User.name, User.email, User.admin,

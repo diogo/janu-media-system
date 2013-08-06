@@ -72,6 +72,13 @@ def get_collections_by_artist(**kwargs):
     if collections:
         return json.dumps(collections)
     return _401
+
+@application.route('/artist/<id>/media/', methods=['GET'])
+def get_collections_by_artist(**kwargs):
+    medias = media_manager.get_medias_by_artist(kwargs['id'])
+    if medias:
+        return json.dumps(medias)
+    return _401
 ######
 
 ### MEDIA TYPE ###
