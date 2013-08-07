@@ -1,6 +1,6 @@
 from models import db, Cover, MediaType, User, Module, MediaSource, ContentType, Playlist
 from models import Media, MediaArtists, MediaGenres, MediaPlaylists, Artist, Genre
-from settings import SYSTEM_USER_ID, THREADS_MAX
+from settings import SYSTEM_USER_ID
 from sqlalchemy import or_
 import mediasources.mediafire
 import content_types.audio_mpeg
@@ -12,7 +12,8 @@ class MediaManager(object):
             new_list = []
             for item in list_:
                 item_dict = item._asdict()
-                item_dict['date'] = item_dict['date'].strftime('%Y')
+                if item_dict.has_key('date'):
+                    item_dict['date'] = item_dict['date'].strftime('%Y')
                 new_list.append(item_dict)
             return new_list
         return None
@@ -50,12 +51,11 @@ class MediaManager(object):
         artists = self._get_models_by_user(artists, user_id)
         return self._as_list_dict(artists)
 
-    def get_collections_by_artist(self, artist_id, mediasources_ids, user_id):
-        collections = db.session.query(Playlist.id, Playlist.name, Cover.url.label('cover_url'),
+    def get_playlists_by_artist(self, artist_id, mediasources_ids, user_id):
+        collections = db.session.query(Playlist.id, Playlist.name, Playlist.collection, Cover.url.label('cover_url'),
                                        Artist.id.label('artist_id'), Artist.name.label('artist_name'))
         collections = collections.join(Playlist.cover)
-        collections = collections.filter(Playlist.collection == True,
-                                         MediaPlaylists.playlist_id == Playlist.id,
+        collections = collections.filter(MediaPlaylists.playlist_id == Playlist.id,
                                          MediaPlaylists.media_id == Media.id)
         collections = self._get_query_by_mediasources(collections, mediasources_ids)
         collections = self._get_query_by_artists(collections, artist_id)
