@@ -14,9 +14,13 @@ elif [ "$1" = 'expire' ]; then
     sleep 12
     curl localhost:5000/user/?token=$TOKEN
 elif [ "$1" = 'artists' ]; then
-	curl localhost:5000/artist/?token=$TOKEN
-elif [ "$1" = 'collections' ]; then
-	curl localhost:5000/artist/1/?token=$TOKEN
+	curl "localhost:5000/artist/?token=$TOKEN&mediasources=$2"
 elif [ "$1" = 'medias' ]; then
-	curl localhost:5000/artist/1/media/?token=$TOKEN
+	curl "localhost:5000/artist/$2/media/?token=$TOKEN&mediasources=$3"
+elif [ "$1" = 'medias_pl' ]; then
+    curl "localhost:5000/playlist/$2/media/?token=$TOKEN&mediasources=$3"
+elif [ "$1" = 'playlists' ]; then
+    curl "localhost:5000/artist/$2/playlist/?token=$TOKEN&mediasources=$3"
+elif [ "$1" = 'media' ]; then
+    curl "localhost:5000/media/$2/?token=$TOKEN&mediasources=$3"
 fi
