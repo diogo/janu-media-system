@@ -78,13 +78,13 @@ def get_artists(*args, **kwargs):
         return json.dumps(artists)
     return _401
 
-@application.route('/artist/<id>/collections/', methods=['GET'])
+@application.route('/artist/<id>/playlist/', methods=['GET'])
 @check_mediasources
 @check_auth
-def get_collections_by_artist(**kwargs):
-    collections = mediaman.get_collections_by_artist(kwargs['id'], kwargs['mediasources'])
-    if collections:
-        return json.dumps(collections)
+def get_playlists_by_artist(**kwargs):
+    playlists = mediaman.get_playlists_by_artist(kwargs['id'], kwargs['mediasources'], kwargs['user_id'])
+    if playlists:
+        return json.dumps(playlists)
     return _401
 
 @application.route('/artist/<id>/media/', methods=['GET'])
