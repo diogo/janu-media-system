@@ -72,9 +72,10 @@ class mediafire(db.Model):
             self._threads.append(thread)
             thread.start()
 
-    def get_media_url(self, quickkey):
+    def get_media_url(self, url):
+        self._get_token()
         return self._get_api_data('file', 'get_links', link_type='direct_download',
-                                  quick_key=quickkey)['response']['links'][0]['direct_download']
+                                  quick_key=url)['response']['links'][0]['direct_download']
 
     def get_all_medias(self):
         self._get_token()

@@ -5,29 +5,18 @@ from settings import DATABASE_URI
 from responses import _401, _200
 from functools import wraps
 from token_manager import TokenManager
-import media_manager
+from media_manager import MediaManager
 import json
 import hashlib
 
 tokenman = TokenManager()
+mediaman = MediaManager()
 
 application = Flask(__name__)
 
 db.init_app(application)
 db.app = application
 application.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
-
-def requires_admin(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if request.args.has_key('token'):
-            client = tokenman.get_client(request.args['token'])
-            if client:
-                if client['user']['admin']:
-                    kwargs['user_id'] = client['user']['id']
-                    return f(*args, **kwargs)
-        return _401
-    return decorated
 
 def requires_auth(f):
     @wraps(f)
@@ -40,13 +29,35 @@ def requires_auth(f):
         return _401
     return decorated
 
+def check_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        kwargs['user_id'] = None
+        if request.args.has_key('token'):
+            client = tokenman.get_client(request.args['token'])
+            if client:
+                kwargs['user_id'] = client['user']['id']
+        return f(*args, **kwargs)
+    return decorated
+
+def check_mediasources(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if request.args.has_key('mediasources'):
+            mediasources = request.args['mediasources'].split(',')
+            if mediasources:
+                kwargs['mediasources'] = mediasources
+                return f(*args, **kwargs)
+        return _401
+    return decorated
+
 ### TOKEN ###
 @application.route('/get_token/', methods=['GET'])
 def get_token():
     if request.authorization:
         email = request.authorization['username']
         password = hashlib.md5(request.authorization['password']).hexdigest()
-        user = media_manager.get_user(email, password)
+        user = mediaman.get_user(email, password)
         if user:
             token = tokenman.get_token(user, request.user_agent, request.remote_addr)
             return json.dumps(token)
@@ -59,47 +70,78 @@ def expire_token():
 
 ### ARTIST ###
 @application.route('/artist/', methods=['GET'])
-@requires_auth
-def artist_get_all(**kwargs):
-    artists = media_manager.get_artists(kwargs['user_id'])
+@check_mediasources
+@check_auth
+def get_artists(*args, **kwargs):
+    artists = mediaman.get_artists(kwargs['mediasources'], kwargs['user_id'])
     if artists:
         return json.dumps(artists)
     return _401
 
-@application.route('/artist/<id>/', methods=['GET'])
+@application.route('/artist/<id>/collections/', methods=['GET'])
+@check_mediasources
+@check_auth
 def get_collections_by_artist(**kwargs):
-    collections = media_manager.get_collections_by_artist(kwargs['id'])
+    collections = mediaman.get_collections_by_artist(kwargs['id'], kwargs['mediasources'])
     if collections:
         return json.dumps(collections)
     return _401
 
 @application.route('/artist/<id>/media/', methods=['GET'])
-def get_collections_by_artist(**kwargs):
-    medias = media_manager.get_medias_by_artist(kwargs['id'])
+@check_mediasources
+@check_auth
+def get_medias_by_artist(*args, **kwargs):
+    medias = mediaman.get_medias_by_artist(kwargs['id'], kwargs['mediasources'], kwargs['user_id'])
     if medias:
         return json.dumps(medias)
     return _401
 ######
 
+### PLAYLIST ###
+@application.route('/playlist/<id>/media/', methods=['GET'])
+@check_mediasources
+@check_auth
+def get_medias_by_playlist(**kwargs):
+    medias = mediaman.get_medias_by_playlist(kwargs['id'], kwargs['mediasources'], kwargs['user_id'])
+    if medias:
+        return json.dumps(medias)
+    return _401
+######
+
+### MEDIA ###
+@application.route('/media/<id>/', methods=['GET'])
+@check_auth
+def get_media(**kwargs):
+    media = mediaman.get_media(kwargs['id'], kwargs['user_id'])
+    if media:
+        return json.dumps(media)
+    return _401
+######
+
 ### MEDIA TYPE ###
 @application.route('/mediatype/', methods=['GET'])
-def mediatypes_get():
-    return json.dumps(media_manager.get_media_types(system_user=SYSTEM_USER))
+@check_mediasources
+@check_auth
+def mediatypes_get(**kwargs):
+    return json.dumps(mediaman.get_media_types(system_user=SYSTEM_USER))
 
 @application.route('/mediatype/<id>/', methods=['GET'])
-def mediatype_get():
+@check_mediasources
+@check_auth
+def mediatype_get(**kwargs):
 	pass
 
 @application.route('/mediatype/', methods=['POST'])
-@requires_admin
-def mediatype_post():
+@requires_auth
+def mediatype_post(**kwargs):
     data = request.form
     db.session.add(MediaType(name=data['name']))
     db.session.commit()
     return _200
 
 @application.route('/mediatype/<id>/', methods=['PUT'])
-def mediatype_put():
+@requires_auth
+def mediatype_put(**kwargs):
 	pass
 ######
 
@@ -107,41 +149,43 @@ def mediatype_put():
 @application.route('/mediasource/', methods=['GET'])
 @requires_auth
 def mediasource_get_all(**kwargs):
-    return json.dumps(media_manager.get_media_sources(kwargs['user_id']))
+    return json.dumps(mediaman.get_media_sources(kwargs['user_id']))
 
 @application.route('/mediasource/<id>/', methods=['GET'])
-@requires_admin
-def mediasource_get(id):
+@requires_auth
+def mediasource_get(**kwargs):
     pass
 
 @application.route('/mediasource/', methods=['POST'])
-@requires_admin
+@requires_auth
 def mediasource_post(**kwargs):
     data = request.form
     data = {key: value for key, value in data.items()}
     data['user_id'] = kwargs['user_id']
-    if media_manager.add_mediasource(data):
+    if mediaman.add_mediasource(data):
         return _200
     else:
         return _401
 
 @application.route('/mediasource/<id>/', methods=['PUT'])
-def mediasource_put():
+@requires_auth
+def mediasource_put(**kwargs):
     pass
 
 @application.route('/mediasource/<id>/', methods=['DELETE'])
-def mediasource_delete():
+@requires_auth
+def mediasource_delete(**kwargs):
     pass
 ######
 
 ### USER ###
 @application.route('/user/', methods=['GET'])
-@requires_admin
-def users_get():
-    return json.dumps(media_manager.get_users())
+@requires_auth
+def users_get(**kwargs):
+    return json.dumps(mediaman.get_users())
 
 @application.route('/user/<id>/', methods=['GET'])
-@requires_admin
+@requires_auth
 def user_get():
 	pass
 
@@ -150,10 +194,12 @@ def user_post():
     pass
 
 @application.route('/me/', methods=['GET'])
+@requires_auth
 def me_get():
 	pass
 
 @application.route('/me/', methods=['PUT'])
+@requires_auth
 def me_put():
 	pass
 ######
