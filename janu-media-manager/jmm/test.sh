@@ -7,7 +7,7 @@ elif [ "$1" = 'query' ]; then
     echo 'Users:'
     curl localhost:5000/user/?token=$TOKEN
     echo -e '\n\nMedia Sources:'
-    curl localhost:5000/mediasource/
+    curl localhost:5000/mediasource/?token=$TOKEN
     echo
 elif [ "$1" = 'expire' ]; then
     curl localhost:5000/user/?token=$TOKEN
@@ -23,4 +23,10 @@ elif [ "$1" = 'playlists' ]; then
     curl "localhost:5000/artist/$2/playlist/?token=$TOKEN&mediasources=$3"
 elif [ "$1" = 'media' ]; then
     curl "localhost:5000/media/$2/?token=$TOKEN&mediasources=$3"
+elif [ "$1" = 'delete' ]; then
+	curl -X DELETE "localhost:5000/mediasource/$2/?token=$TOKEN"
+elif [ "$1" = 'genres' ]; then
+	curl "localhost:5000/genre/?token=$TOKEN&mediasources=$2"
+elif [ "$1" = 'artists_gr' ]; then
+	curl "localhost:5000/genre/$2/artist/?token=$TOKEN&mediasources=$3"
 fi

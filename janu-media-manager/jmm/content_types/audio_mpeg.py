@@ -2,9 +2,6 @@ import urllib2
 from datetime import datetime
 from mutagen.easyid3 import EasyID3
 from mutagen.id3 import ID3NoHeaderError
-from models import Artist, Genre, Playlist, MediaGenres, MediaArtists, Media
-
-
 
 def get_media_dict(media_url):
 	file_name = '/tmp/jmm%d.mp3' % datetime.now().microsecond
@@ -22,6 +19,10 @@ def get_media_dict(media_url):
 			dict_.pop('title')
 		else:
 			return None
+		genres = dict_['genre'].split(',')
+		dict_['genre'] = []
+		for genre in genres:
+			dict_['genre'].append(genre.strip())
 		if dict_.has_key('album'):
 			dict_['collection'] = dict_['album']
 			dict_.pop('album')

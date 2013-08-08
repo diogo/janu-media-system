@@ -1,6 +1,5 @@
 from flask import Flask, request
-from models import db, Cover, MediaType, User, Module, MediaSource, ContentType, Playlist
-from models import Media, MediaArtists, MediaGenres, MediaPlaylists, Artist, Genre
+from models import db
 from settings import DATABASE_URI
 from responses import _401, _200
 from functools import wraps
@@ -17,6 +16,18 @@ application = Flask(__name__)
 db.init_app(application)
 db.app = application
 application.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+
+def requires_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if request.args.has_key('token'):
+            client = tokenman.get_client(request.args['token'])
+            if client:
+                if client['user']['admin']:
+                    kwargs['user_id'] = client['user']['id']
+                    return f(*args, **kwargs)
+        return _401
+    return decorated
 
 def requires_auth(f):
     @wraps(f)
@@ -108,6 +119,26 @@ def get_medias_by_playlist(**kwargs):
     return _401
 ######
 
+### GENRE ###
+@application.route('/genre/', methods=['GET'])
+@check_mediasources
+@check_auth
+def get_genres(*args, **kwargs):
+    genres = mediaman.get_genres(kwargs['mediasources'], kwargs['user_id'])
+    if genres:
+        return json.dumps(genres)
+    return _401
+
+@application.route('/genre/<id>/artist/', methods=['GET'])
+@check_mediasources
+@check_auth
+def get_artists_by_genre(*args, **kwargs):
+    artists = mediaman.get_artists_by_genre(kwargs['id'], kwargs['mediasources'], kwargs['user_id'])
+    if artists:
+        return json.dumps(artists)
+    return _401
+######
+
 ### MEDIA ###
 @application.route('/media/<id>/', methods=['GET'])
 @check_auth
@@ -130,35 +161,22 @@ def mediatypes_get(**kwargs):
 @check_auth
 def mediatype_get(**kwargs):
 	pass
-
-@application.route('/mediatype/', methods=['POST'])
-@requires_auth
-def mediatype_post(**kwargs):
-    data = request.form
-    db.session.add(MediaType(name=data['name']))
-    db.session.commit()
-    return _200
-
-@application.route('/mediatype/<id>/', methods=['PUT'])
-@requires_auth
-def mediatype_put(**kwargs):
-	pass
 ######
 
 ### MEDIA SOURCE ###
 @application.route('/mediasource/', methods=['GET'])
-@requires_auth
-def mediasource_get_all(**kwargs):
-    return json.dumps(mediaman.get_media_sources(kwargs['user_id']))
+@requires_admin
+def get_mediasources(**kwargs):
+    return json.dumps(mediaman.get_mediasources(kwargs['user_id']))
 
 @application.route('/mediasource/<id>/', methods=['GET'])
-@requires_auth
-def mediasource_get(**kwargs):
+@requires_admin
+def get_mediasource(**kwargs):
     pass
 
 @application.route('/mediasource/', methods=['POST'])
-@requires_auth
-def mediasource_post(**kwargs):
+@requires_admin
+def add_mediasource(**kwargs):
     data = request.form
     data = {key: value for key, value in data.items()}
     data['user_id'] = kwargs['user_id']
@@ -168,39 +186,44 @@ def mediasource_post(**kwargs):
         return _401
 
 @application.route('/mediasource/<id>/', methods=['PUT'])
-@requires_auth
-def mediasource_put(**kwargs):
+@requires_admin
+def edit_mediasource(**kwargs):
     pass
 
 @application.route('/mediasource/<id>/', methods=['DELETE'])
-@requires_auth
-def mediasource_delete(**kwargs):
-    pass
+@requires_admin
+def remove_mediasource(**kwargs):
+    try:
+        mediaman.remove_mediasource(kwargs['id'])
+        return _200
+    except Exception, e:
+        print e
+        return _401
 ######
 
 ### USER ###
 @application.route('/user/', methods=['GET'])
-@requires_auth
-def users_get(**kwargs):
+@requires_admin
+def get_users(**kwargs):
     return json.dumps(mediaman.get_users())
 
 @application.route('/user/<id>/', methods=['GET'])
-@requires_auth
-def user_get():
+@requires_admin
+def get_user():
 	pass
 
 @application.route('/user/', methods=['POST'])
-def user_post():
+def add_user():
     pass
 
 @application.route('/me/', methods=['GET'])
 @requires_auth
-def me_get():
+def get_me():
 	pass
 
 @application.route('/me/', methods=['PUT'])
 @requires_auth
-def me_put():
+def edit_me():
 	pass
 ######
 
