@@ -1,11 +1,16 @@
 from models import db, Cover, MediaType, User, Module, MediaSource, ContentType, Playlist, FavoritePlaylist
 from models import Media, MediaGenre, MediaPlaylist, Artist, Genre, FavoriteMedia
 from settings import SYSTEM_USER_ID
+from threading import Thread
 from sqlalchemy import or_
 import mediasources.mediafire
 import content_types.audio_mpeg
 
 class MediaManager(object):
+
+    def __init__(self):
+        self._threads = []
+        self._medias_dict = []
 
     def _as_list_dict(self, list_):
         if list_:
@@ -35,6 +40,11 @@ class MediaManager(object):
             list_.append("Media.source_id == %s" % ms)
         mediasources = ', '.join(list_)
         return eval("query.filter(or_(%s))" % mediasources)
+
+    def _get_media_dict(self, content_type, media_url):
+        media_dict = content_type.get_media_dict(media_url)
+        if media_dict:
+            self._medias_dict.append(media_dict)
 
     def get_artists(self, mediasources_ids, user_id):
         artists = db.session.query(Artist.id, Artist.name, Cover.url.label('cover_url'))
@@ -198,24 +208,30 @@ class MediaManager(object):
                 content_type = '_'.join(content_type.name.split('/'))
                 content_type = content_types.__dict__[content_type]
                 media_url = module.get_media_url(media['url'])
-                media_dict = content_type.get_media_dict(media_url)
-                if not media_dict:
-                    continue
-                artist = Artist.query.filter(Artist.name == media_dict['artist']).first()
-                if not artist:
-                    artist = Artist(name=media_dict['artist'])
+                thread = Thread(target=self._get_media_dict, args=(content_type, media_url,))
+                self._threads.append(thread)
+                thread.start()
+
+        for thread in self._threads:
+            thread.join()
+
+        for media_dict in self._medias_dict:
+            artist = Artist.query.filter(Artist.name == media_dict['artist']).first()
+            if not artist:
+                artist = Artist(name=media_dict['artist'])
                 db.session.add(artist)
-                media_model = Media(name=media_dict['name'], content_type_id=content_type_id,
-                                    url=media['url'], source_id=mediasource.id, artist=artist)
-                media_model.genre = media_dict['genre']
-                if media_dict.has_key('date'):
-                    media_model.date = media_dict['date']
-                if media_dict.has_key('collection'):
-                    media_model.collection = media_dict['collection']
-                if media_dict.has_key('collection_position'):
-                    media_model.coll_pos = media_dict['collection_position']
-                db.session.add(media_model)
-                medias_model.append(media_model)
+                db.session.commit()
+            media_model = Media(name=media_dict['name'], content_type_id=content_type_id,
+                                url=media_dict['url'], source_id=mediasource.id, artist=artist)
+            media_model.genre = media_dict['genre']
+            if media_dict.has_key('date'):
+                media_model.date = media_dict['date']
+            if media_dict.has_key('collection'):
+                media_model.collection = media_dict['collection']
+            if media_dict.has_key('collection_position'):
+                media_model.coll_pos = media_dict['collection_position']
+            db.session.add(media_model)
+            medias_model.append(media_model)
         db.session.commit()
 
         for media in medias_model:
